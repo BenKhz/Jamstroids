@@ -3,4 +3,4 @@ node_modules
 config.js
 bundle.js
 matter.js
-example.js
+*example.js
