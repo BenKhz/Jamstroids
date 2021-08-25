@@ -18,7 +18,7 @@ var render = Render.create({
   element: document.body,
   engine: engine,
   options: {
-    width: 800,
+    width: document.getElementsByTagName('body')[0].clientWidth,
     height: 600,
     pixelRatio: 1,
     background: '#fafafa',
@@ -63,7 +63,7 @@ class Asteroid extends Bodies.fromVertices {
       var angle = 0;
       for (var i = 1; i < 60; i++) {
         angle += 0.1 + Math.random(); //change in angle in radians
-        if (angle > 2 * Math.PI) {
+        if (angle >= 2 * Math.PI) {
           break; //stop before it becomes convex
         }
         r = 2 + Math.random() * 2;
@@ -73,9 +73,21 @@ class Asteroid extends Bodies.fromVertices {
       }
       return polyVector;
     }
-    var randVertices = randomConvexPolygon(40)
+    var randVertices = randomConvexPolygon((Math.random()*30)+5)
     var shape = Vertices.fromPath(randVertices)
-    super(posX, posY, shape)
+    var options = {
+      angle : Math.random() * Math.PI * 0.5,
+      friction: 0,
+      frictionStatic: 0,
+      frictionAir: 0,
+      speed: 20
+    }
+    var asteroid = super(posX, posY, shape, options)
+    asteroid.force = {
+      x: Math.cos(asteroid.angle + Math.PI * 0.5)*0.05,
+      y: Math.sin(asteroid.angle + Math.PI * 0.5)*0.05
+    }
+    return asteroid
   }
 }
 // define laser class
@@ -97,7 +109,6 @@ class Laser extends Bodies.polygon {
       x: ship.velocity.x + speed * Math.cos(angle),
       y: ship.velocity.y + speed * Math.sin(angle)
     })
-    // lasers.push(laser);
     return laser;
   }
 }
@@ -105,8 +116,10 @@ class Laser extends Bodies.polygon {
 var instantiateBodies = () => { // only starting ship for now
   var initBodies = [];
   initBodies.push(new Ship(400, 300, 3, 20))
-  // initBodies.push(new Asteroid(100, 100))
-  // initBodies.push(new Asteroid(200, 50))
+  initBodies.push(new Asteroid(Math.random()*render.options.width, Math.random()*render.options.height))
+  initBodies.push(new Asteroid(Math.random()*render.options.width, Math.random()*render.options.height))
+  initBodies.push(new Asteroid(Math.random()*render.options.width, Math.random()*render.options.height))
+  initBodies.push(new Asteroid(Math.random()*render.options.width, Math.random()*render.options.height))
   return initBodies;
 }
 
@@ -118,14 +131,6 @@ var instantiateBodies = () => { // only starting ship for now
 
 // add random asteroids
 Composite.add(engine.world, instantiateBodies());
-
-var instantiateBodies = () => { // only starting ship for now
-  var initBodies = [];
-  initBodies.push(new Ship(400, 300, 3, 20))
-  initBodies.push(new Asteroid(100, 100))
-  initBodies.push(new Asteroid(200, 50))
-  return initBodies;
-}
 
 // Global array for keypress tracking
 var keys = [];
@@ -170,21 +175,43 @@ function manageControls() {
 // global array for lasers
 const lasers = [];
 // laser cleanup and lifespan function
-function manageLasers() {
-  engine.world.bodies.forEach((laser, i) => {
-    if(laser.lifespan < engine.timing.timestamp){
-      Composite.remove(engine.world, laser)
-      // lasers.splice(i)
+function manageBodies() {
+  engine.world.bodies.forEach((body, i) => {
+    wrapCanvas(body);
+    if(body.lifespan < engine.timing.timestamp){
+      Composite.remove(engine.world, body)
     }
   })
+}
+// implement wrapping informed by canvas height and width
+function wrapCanvas(body) {
+  var height = render.options.height;
+  var width = render.options.width;
+  if(body.bounds.max.y <= 1){
+      Matter.Body.translate(body,{ x:0, y: height + (body.bounds.max.y - body.bounds.min.y) });
+  }
+  if(body.bounds.min.y >= height){
+      Matter.Body.translate(body,{ x:0, y: -height - (body.bounds.max.y - body.bounds.min.y) });
+  }
+  if(body.bounds.max.x <= 1){
+      Matter.Body.translate(body,{ x:width + (body.bounds.max.x - body.bounds.min.x), y: 0 });
+  }
+  if(body.bounds.min.x >= width){
+      Matter.Body.translate(body,{ x:-width - (body.bounds.max.x - body.bounds.min.x), y: 0 });
+  }
 }
 // run the renderer
 Render.run(render);
 // List Events below
-Events.on(render, "beforeRender", manageControls)
-Events.on(render, "beforeRender", manageLasers)
+Events.on(render, "beforeRender", () => {
+  manageControls()
+  manageBodies()
+})
+
 // Add collsion events below
-// Events.on(render, 'onCollision', cb)
+Events.on(engine, 'collisionStart', (event) => {
+  console.log(event)
+})
 
 // create runner
 var runner = Runner.create();
