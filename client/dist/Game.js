@@ -39,6 +39,7 @@ class Ship extends Bodies.fromVertices {
   constructor() {
     var shape = Vertices.fromPath('0 15 -10 -15 10 -15')
     var options = {
+    label: "ship",
     dead: false,
     thrust: 0.0002,
     yaw: 0.00133,
@@ -76,6 +77,7 @@ class Asteroid extends Bodies.fromVertices {
     var randVertices = randomConvexPolygon((Math.random()*30)+5)
     var shape = Vertices.fromPath(randVertices)
     var options = {
+      label: "asteroid",
       angle : Math.random() * Math.PI * 0.5,
       friction: 0,
       frictionStatic: 0,
@@ -97,6 +99,7 @@ class Laser extends Bodies.polygon {
     var angle = ship.angle + Math.PI * 0.5;
     var speed = 8;
     var options = {
+      label: "laser",
       angle: Math.random() * 6.28,
       friction: 0,
       frictionStatic: 0,
@@ -117,17 +120,9 @@ var instantiateBodies = () => { // only starting ship for now
   var initBodies = [];
   initBodies.push(new Ship(400, 300, 3, 20))
   initBodies.push(new Asteroid(Math.random()*render.options.width, Math.random()*render.options.height))
-  initBodies.push(new Asteroid(Math.random()*render.options.width, Math.random()*render.options.height))
-  initBodies.push(new Asteroid(Math.random()*render.options.width, Math.random()*render.options.height))
-  initBodies.push(new Asteroid(Math.random()*render.options.width, Math.random()*render.options.height))
+
   return initBodies;
 }
-
-// add all of the bodies to the world
-
-// add any boundaries or static items
-
-// add player ship
 
 // add random asteroids
 Composite.add(engine.world, instantiateBodies());
@@ -207,10 +202,28 @@ Events.on(render, "beforeRender", () => {
   manageControls()
   manageBodies()
 })
-
+// split into multiple smaller asteroids
+function splitRoids(parentRoid) {
+  if(parentRoid.area > 6000){
+    var deltaX = Math.random() * 10
+    Composite.add(
+      engine.world,
+      new Asteroid(
+        parentRoid.position.x + Math.random() * 10,
+        parentRoid.position.y + Math.random() * 10))
+  }
+}
 // Add collsion events below
 Events.on(engine, 'collisionStart', (event) => {
-  console.log(event)
+  var { bodyA } = event.source.pairs.list[0];
+  var { bodyB } = event.source.pairs.list[0];
+  if( bodyA.label === 'asteroid' && bodyB.label === "laser") {
+    splitRoids(bodyA)
+    Composite.remove(engine.world, [bodyA, bodyB])
+  }
+  if( bodyA.label ==="ship" ) {
+    Composite.remove(engine.world, bodyA)
+  }
 })
 
 // create runner
