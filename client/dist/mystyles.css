@@ -1,4 +1,44 @@
 /* Layout Helper */
-* {
+/* * {
   border: 2px dashed red;
+} */
+body{
+  color: azure;
 }
+canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: -1;
+}
+.button {
+  border-radius: 100%;
+  background-color: slategrey;
+  margin-left:1rem;
+  margin-right:1rem;
+  padding: 0.25rem;
+}
+
+ul {
+  list-style: none;
+}
+.mainmodal {
+  position: absolute;
+  top: 20%;
+  left: 100%;
+
+  transition: transform 1s;
+
+}
+.mainmodal.active{
+  transform: translateX(-100%)
+}
+.navbar .playback {
+display:flex;
+flex-flow: row;
+}
+
+.navbar {
+
+}
+

@@ -18,8 +18,8 @@ var render = Render.create({
   element: document.body,
   engine: engine,
   options: {
-    width: document.getElementsByTagName('body')[0].clientWidth,
-    height: 600,
+    width: document.documentElement.clientWidth,
+    height: document.documentElement.clientHeight,
     pixelRatio: 1,
     background: '#fafafa',
     wireframeBackground: '#222',
@@ -201,6 +201,20 @@ Render.run(render);
 Events.on(render, "beforeRender", () => {
   manageControls()
   manageBodies()
+  if ( engine.world.bodies.length < 2) {
+    Composite.add(engine.world,
+      new Asteroid(
+        Math.random() * render.options.width,
+        Math.random() * render.options.width))
+    Composite.add(engine.world,
+      new Asteroid(
+        Math.random() * render.options.width,
+        Math.random() * render.options.width))
+    Composite.add(engine.world,
+      new Asteroid(
+        Math.random() * render.options.width,
+        Math.random() * render.options.width))
+  }
 })
 // split into multiple smaller asteroids
 function splitRoids(parentRoid) {
@@ -209,8 +223,13 @@ function splitRoids(parentRoid) {
     Composite.add(
       engine.world,
       new Asteroid(
-        parentRoid.position.x + Math.random() * 10,
-        parentRoid.position.y + Math.random() * 10))
+        parentRoid.position.x + Math.random() * 100,
+        parentRoid.position.y + Math.random() * 100))
+    Composite.add(
+      engine.world,
+      new Asteroid(
+        parentRoid.position.x + Math.random() * 100,
+        parentRoid.position.y + Math.random() * 100))
   }
 }
 // Add collsion events below
@@ -218,10 +237,10 @@ Events.on(engine, 'collisionStart', (event) => {
   var { bodyA } = event.source.pairs.list[0];
   var { bodyB } = event.source.pairs.list[0];
   if( bodyA.label === 'asteroid' && bodyB.label === "laser") {
-    splitRoids(bodyA)
     Composite.remove(engine.world, [bodyA, bodyB])
+    splitRoids(bodyA)
   }
-  if( bodyA.label ==="ship" ) {
+  if( bodyA.label === "ship" ) {
     Composite.remove(engine.world, bodyA)
   }
 })

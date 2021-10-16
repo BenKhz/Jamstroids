@@ -1,5 +1,4 @@
 import React from 'react';
-import { Body } from 'matter-js';
 
 const Controls = () => {
 
