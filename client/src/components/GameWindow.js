@@ -2,9 +2,7 @@ import Matter from 'matter-js';
 import React, { Component } from 'react';
 
 /// /// ///  TODOs here
-// import ShipClass from './ship';
-// import AsteroidClass from './asteroid';
-// import LaserClass from './laser';
+import {Ship, Laser, Asteroid} from './GameUtils';
 
 class GameWindow extends Component {
   constructor(props) {
@@ -38,10 +36,13 @@ componentDidMount() {
 
   // Refactor into class later
   // Create a triangle from vertices for ship.
-  var boxA = Matter.Bodies.fromVertices(centerX, centerY, [
-    {x:0, y:0},
-    {x:10, y:-30},
-    {x:20, y:0}])
+  // var boxA = Matter.Bodies.fromVertices(centerX, centerY, [
+  //   {x:0, y:0},
+  //   {x:10, y:-30},
+  //   {x:20, y:0}])
+
+    var boxA = new Ship(engine);
+
 
   // When 'beforeRender' event emitted from render object.
   Matter.Events.on(render, 'beforeRender', () => {
